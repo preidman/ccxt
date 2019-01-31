@@ -273,6 +273,7 @@ module.exports = class wavesdex extends Exchange {
             method:'get',
             url: this.matcherUrl + '/matcher/orderbook/' + assetname + '/' + marketid
         })
+        console.log('dexBook', dexBook)
         let bids = []
         for (let i in dexBook['bids']) {
             let price = parseFloat(dexBook['bids'][i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
