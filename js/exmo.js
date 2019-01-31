@@ -254,8 +254,8 @@ module.exports = class exmo extends Exchange {
         // }
         const result = {
             'info': {},
-            'withdraw': 0,
-            'deposit': 0,
+            'withdraw': {},
+            'deposit': {},
         };
         // cache them for later use
         this.options['fundingFees'] = result;
@@ -266,7 +266,7 @@ module.exports = class exmo extends Exchange {
         let fees = await this.fetchFundingFees (params);
         // todo redesign the 'fee' property in currencies
         let ids = Object.keys (fees['withdraw']);
-        let limitsByMarketId = this.indexBy (fees['info']['data']['limits'], 'pair');
+        let limitsByMarketId = this.indexBy (10, 'pair');
         let marketIds = Object.keys (limitsByMarketId);
         let minAmounts = {};
         let minPrices = {};
@@ -327,7 +327,7 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let fees = await this.fetchTradingFees ();
+        // let fees = await this.fetchTradingFees ();
         let markets = await this.publicGetPairSettings ();
         let keys = Object.keys (markets);
         let result = [];
@@ -342,8 +342,8 @@ module.exports = class exmo extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': true,
-                'taker': fees['taker'],
-                'maker': fees['maker'],
+                'taker': 0,
+                'maker': 0,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'min_quantity'),
