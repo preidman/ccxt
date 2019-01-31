@@ -273,24 +273,25 @@ module.exports = class wavesdex extends Exchange {
             method:'get',
             url: this.matcherUrl + '/matcher/orderbook/' + assetname + '/' + marketid
         })
-        // let bids = []
-        // for (let i in dexBook['bids']) {
-        //     let price = parseFloat(dexBook['bids'][i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
-        //     let size = parseFloat(dexBook['bids'][i]['amount']) / 10 ** assetPrecision
-        //     bids.push([price, size])
-        // }
-        // let asks = []
-        // for (let i in dexBook['asks']) {
-        //     let price = parseFloat(dexBook['asks'][i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
-        //     let size = parseFloat(dexBook['asks'][i]['amount']) / 10 ** assetPrecision
-        //     asks.push([price, size])
-        // }
-        // let orderbook = {
-        //     'bids': bids,
-        //     'asks': asks,
-        //     'timestamp': Date.now(),
-        // }
-        return dexBook
+        dexBook = dexBook['data']
+        let bids = []
+        for (let i in dexBook['bids']) {
+            let price = parseFloat(dexBook['bids'][i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
+            let size = parseFloat(dexBook['bids'][i]['amount']) / 10 ** assetPrecision
+            bids.push([price, size])
+        }
+        let asks = []
+        for (let i in dexBook['asks']) {
+            let price = parseFloat(dexBook['asks'][i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
+            let size = parseFloat(dexBook['asks'][i]['amount']) / 10 ** assetPrecision
+            asks.push([price, size])
+        }
+        let orderbook = {
+            'bids': bids,
+            'asks': asks,
+            'timestamp': Date.now(),
+        }
+        return orderbook
     }
 
     // async fetchOrderBook (symbol, limit = undefined, params = {}) {
