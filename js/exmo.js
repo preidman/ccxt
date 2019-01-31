@@ -45,7 +45,7 @@ module.exports = class exmo extends Exchange {
                     'https://exmo.me/en/api_doc?ref=131685',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ],
-                'fees': 'https://exmo.com/en/docs/fees',
+                'fees': 'https://google.com',
             },
             'api': {
                 'web': {
@@ -111,25 +111,25 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        let response = await this.webGetEnDocsFees (params);
-        let parts = response.split ('<td class="th_fees_2" colspan="2">');
-        let numParts = parts.length;
-        if (numParts !== 2) {
-            throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
-        }
-        const rest = parts[1];
-        parts = rest.split ('</td>');
-        numParts = parts.length;
-        if (numParts < 2) {
-            throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
-        }
-        const fee = parseFloat (parts[0].replace ('%', '')) * 0.01;
-        let taker = fee;
-        let maker = fee;
+        // let response = await this.webGetEnDocsFees (params);
+        // let parts = response.split ('<td class="th_fees_2" colspan="2">');
+        // let numParts = parts.length;
+        // if (numParts !== 2) {
+        //     throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+        // }
+        // const rest = parts[1];
+        // parts = rest.split ('</td>');
+        // numParts = parts.length;
+        // if (numParts < 2) {
+        //     throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+        // }
+        // const fee = parseFloat (parts[0].replace ('%', '')) * 0.01;
+        // let taker = fee;
+        // let maker = fee;
         return {
-            'info': response,
-            'maker': maker,
-            'taker': taker,
+            'info': {},
+            'maker': 0,
+            'taker': 0,
         };
     }
 
@@ -148,7 +148,7 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchFundingFees (params = {}) {
-        const response = await this.webGetCtrlFeesAndLimits (params);
+        // const response = await this.webGetCtrlFeesAndLimits (params);
         //
         //     { success:    1,
         //          ctlr:   "feesAndLimits",
@@ -224,38 +224,38 @@ module.exports = class exmo extends Exchange {
         //
         //
         // the code below assumes all non-zero crypto fees are fixed (for now)
-        const withdraw = {};
-        const deposit = {};
-        const groups = this.safeValue (response['data'], 'fees');
-        const groupsByGroup = this.indexBy (groups, 'group');
-        const items = groupsByGroup['crypto']['items'];
-        for (let i = 0; i < items.length; i++) {
-            let item = items[i];
-            let code = this.commonCurrencyCode (this.safeString (item, 'prov'));
-            let withdrawalFee = this.safeString (item, 'wd');
-            let depositFee = this.safeString (item, 'dep');
-            if (withdrawalFee !== undefined) {
-                if (withdrawalFee.length > 0) {
-                    withdraw[code] = this.parseFixedFloatValue (withdrawalFee);
-                }
-            }
-            if (depositFee !== undefined) {
-                if (depositFee.length > 0) {
-                    deposit[code] = this.parseFixedFloatValue (depositFee);
-                }
-            }
-        }
-        // sets fiat fees to undefined
-        const fiatGroups = this.toArray (this.omit (groupsByGroup, 'crypto'));
-        for (let i = 0; i < fiatGroups.length; i++) {
-            const code = this.commonCurrencyCode (this.safeString (fiatGroups[i], 'title'));
-            withdraw[code] = undefined;
-            deposit[code] = undefined;
-        }
+        // const withdraw = {};
+        // const deposit = {};
+        // const groups = this.safeValue (response['data'], 'fees');
+        // const groupsByGroup = this.indexBy (groups, 'group');
+        // const items = groupsByGroup['crypto']['items'];
+        // for (let i = 0; i < items.length; i++) {
+        //     let item = items[i];
+        //     let code = this.commonCurrencyCode (this.safeString (item, 'prov'));
+        //     let withdrawalFee = this.safeString (item, 'wd');
+        //     let depositFee = this.safeString (item, 'dep');
+        //     if (withdrawalFee !== undefined) {
+        //         if (withdrawalFee.length > 0) {
+        //             withdraw[code] = this.parseFixedFloatValue (withdrawalFee);
+        //         }
+        //     }
+        //     if (depositFee !== undefined) {
+        //         if (depositFee.length > 0) {
+        //             deposit[code] = this.parseFixedFloatValue (depositFee);
+        //         }
+        //     }
+        // }
+        // // sets fiat fees to undefined
+        // const fiatGroups = this.toArray (this.omit (groupsByGroup, 'crypto'));
+        // for (let i = 0; i < fiatGroups.length; i++) {
+        //     const code = this.commonCurrencyCode (this.safeString (fiatGroups[i], 'title'));
+        //     withdraw[code] = undefined;
+        //     deposit[code] = undefined;
+        // }
         const result = {
-            'info': response,
-            'withdraw': withdraw,
-            'deposit': deposit,
+            'info': {},
+            'withdraw': 0,
+            'deposit': 0,
         };
         // cache them for later use
         this.options['fundingFees'] = result;
