@@ -3,6 +3,7 @@
 /* eslint-disable */
 
 const Exchange = require ('./base/Exchange');
+const axios = require ('axios');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, OrderNotFound, InvalidOrder, AuthenticationError, InvalidNonce } = require ('./base/errors');
 
 module.exports = class wavesdex extends Exchange {
@@ -146,53 +147,52 @@ module.exports = class wavesdex extends Exchange {
         let response = await this.publicGetInfo ();
         let markets = response['symbols'];
         let keys = Object.keys (markets);
-        console.log('WAVESDEX MARKETS: ', markets)
         let result = [];
-        // for (let i = 0; i < keys.length; i++) {
-        //     let id = keys[i];
-        //     let market = markets[id];
-        //     let [ baseId, quoteId ] = id.split ('_');
-        //     let base = baseId.toUpperCase ();
-        //     let quote = quoteId.toUpperCase ();
-        //     base = this.commonCurrencyCode (base);
-        //     quote = this.commonCurrencyCode (quote);
-        //     let symbol = base + '/' + quote;
-        //     let precision = {
-        //         'amount': this.safeInteger (market, 'decimal_places'),
-        //         'price': this.safeInteger (market, 'decimal_places'),
-        //     };
-        //     let amountLimits = {
-        //         'min': this.safeFloat (market, 'min_amount'),
-        //         'max': this.safeFloat (market, 'max_amount'),
-        //     };
-        //     let priceLimits = {
-        //         'min': this.safeFloat (market, 'min_price'),
-        //         'max': this.safeFloat (market, 'max_price'),
-        //     };
-        //     let costLimits = {
-        //         'min': this.safeFloat (market, 'min_total'),
-        //     };
-        //     let limits = {
-        //         'amount': amountLimits,
-        //         'price': priceLimits,
-        //         'cost': costLimits,
-        //     };
-        //     let hidden = this.safeInteger (market, 'hidden');
-        //     let active = (hidden === 0);
-        //     result.push ({
-        //         'id': id,
-        //         'symbol': symbol,
-        //         'base': base,
-        //         'quote': quote,
-        //         'baseId': baseId,
-        //         'quoteId': quoteId,
-        //         'active': active,
-        //         'taker': market['fee'] / 100,
-        //         'precision': precision,
-        //         'limits': limits,
-        //         'info': market,
-        //     });
-        // }
+        for (let i = 0; i < keys.length; i++) {
+            let id = keys[i];
+            let market = markets[id];
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': this.safeInteger (market, 'decimal_places'),
+                'price': this.safeInteger (market, 'decimal_places'),
+            };
+            let amountLimits = {
+                'min': this.safeFloat (market, 'min_amount'),
+                'max': this.safeFloat (market, 'max_amount'),
+            };
+            let priceLimits = {
+                'min': this.safeFloat (market, 'min_price'),
+                'max': this.safeFloat (market, 'max_price'),
+            };
+            let costLimits = {
+                'min': this.safeFloat (market, 'min_total'),
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            };
+            let hidden = this.safeInteger (market, 'hidden');
+            let active = (hidden === 0);
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'taker': market['fee'] / 100,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
         return result;
     }
 
@@ -223,23 +223,90 @@ module.exports = class wavesdex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 150, max = 2000
+    InitMatcher (params = {}) {
+        let self = this
+
+        if (!self.initDex) {
+            self.dexid = {
+                "WAVES": "",
+                "BTC": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+                "ETH": "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+                "USD": "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
+            }
+            self.decimals = {
+                "WAVES": 8,
+                "BTC": 8,
+                "ETH": 8,
+                "USD": 2,
+            }
+            self.initDex = true
+            self.matcherUrl = 'https://matcher.wavesnodes.com'
+
+            // pw.setMatcher('http://172.31.6.100:8080')
+            // pw.setMatcher(node = 'https://matcher.wavesnodes.com')
+            // self.dex_account = pw.Address(privateKey = self.apiKey)
+            // self.dex_address = pw.Address(privateKey = self.apiKey).address
+            // self.balances = {}
+            // self.asset_priority = {}
+            // data = requests.get(pw.MATCHER + '/matcher/settings')
+            // i = 0
+            // assets = json.loads(data.text)
+            // for a in assets['priceAssets']:
+            //     self.asset_priority[a] = i
+            //     i += 1
         }
-        let response = await this.publicGetDepthPair (this.extend (request, params));
-        let market_id_in_reponse = (market['id'] in response);
-        if (!market_id_in_reponse) {
-            throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
-        }
-        let orderbook = response[market['id']];
-        return this.parseOrderBook (orderbook);
     }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        this.InitMatcher();
+        let assetname = symbol.split('/')[0]
+        let marketname = symbol.split('/')[1]
+
+        let assetid = this.dexid[assetname]
+        let marketid = this.dexid[marketname]
+
+        let assetPrecision = this.decimals[assetname]
+        let marketPrecision = this.decimals[marketname]
+
+        let dexBook = await axios.get(this.matcherUrl + '/matcher/orderbook/' + assetname + '/' + marketid + '/')
+        let bids = []
+        for (let i in dexBook['bids']) {
+            let price = parseFloat(dexBook['bids'][i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
+            let size = parseFloat(dexBook['bids'][i]['amount']) / 10 ** assetPrecision
+            bids.push([price, size])
+        }
+        let asks = []
+        for (let i in dexBook['asks']) {
+            let price = parseFloat(dexBook['asks'][i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
+            let size = parseFloat(dexBook['asks'][i]['amount']) / 10 ** assetPrecision
+            asks.push([price, size])
+        }
+        let orderbook = {
+            'bids': bids,
+            'asks': asks,
+            'timestamp': Date.now(),
+        }
+        return orderbook
+    }
+
+    // async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    //     this.InitMatcher();
+    //     await this.loadMarkets ();
+    //     let market = this.market (symbol);
+    //     let request = {
+    //         'pair': market['id'],
+    //     };
+    //     if (limit !== undefined) {
+    //         request['limit'] = limit; // default = 150, max = 2000
+    //     }
+    //     let response = await this.publicGetDepthPair (this.extend (request, params));
+    //     let market_id_in_reponse = (market['id'] in response);
+    //     if (!market_id_in_reponse) {
+    //         throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
+    //     }
+    //     let orderbook = response[market['id']];
+    //     return this.parseOrderBook (orderbook);
+    // }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
