@@ -268,7 +268,11 @@ module.exports = class wavesdex extends Exchange {
         let assetPrecision = this.decimals[assetname]
         let marketPrecision = this.decimals[marketname]
 
-        let dexBook = await axios.get(this.matcherUrl + '/matcher/orderbook/' + assetname + '/' + marketid)
+        // let dexBook = await axios.get(this.matcherUrl + '/matcher/orderbook/' + assetname + '/' + marketid)
+        let dexBook = await axios({
+            method:'get',
+            url: this.matcherUrl + '/matcher/orderbook/' + assetname + '/' + marketid
+        })
         let bids = []
         for (let i in dexBook['bids']) {
             let price = parseFloat(dexBook['bids'][i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
