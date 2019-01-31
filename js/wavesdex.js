@@ -143,7 +143,7 @@ module.exports = class wavesdex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetExchangeInfo ();
+        let response = await this.publicGetInfo ();
         let markets = response['symbols'];
         let keys = Object.keys (markets);
         console.log('WAVESDEX MARKETS: ', markets)
