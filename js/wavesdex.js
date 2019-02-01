@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const axios = require ('axios');
+const wc = require('waves-crypto');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, OrderNotFound, InvalidOrder, AuthenticationError, InvalidNonce } = require ('./base/errors');
 
 module.exports = class wavesdex extends Exchange {
@@ -196,34 +197,7 @@ module.exports = class wavesdex extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostGetInfo ();
-        let balances = response['return'];
-        let result = { 'info': balances };
-        let funds = balances['funds'];
-        let currencies = Object.keys (funds);
-        for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let uppercase = currency.toUpperCase ();
-            uppercase = this.commonCurrencyCode (uppercase);
-            let total = undefined;
-            let used = undefined;
-            if (balances['open_orders'] === 0) {
-                total = funds[currency];
-                used = 0.0;
-            }
-            let account = {
-                'free': funds[currency],
-                'used': used,
-                'total': total,
-            };
-            result[uppercase] = account;
-        }
-        return this.parseBalance (result);
-    }
-
-    InitMatcher (params = {}) {
+     InitMatcher (params = {}) {
         let self = this
 
         if (!self.initDex) {
@@ -241,20 +215,131 @@ module.exports = class wavesdex extends Exchange {
             }
             self.initDex = true
             self.matcherUrl = 'https://matcher.wavesnodes.com'
+            self.nodeUrl = 'https://nodes.wavesplatform.com'
 
-            // pw.setMatcher('http://172.31.6.100:8080')
-            // pw.setMatcher(node = 'https://matcher.wavesnodes.com')
-            // self.dex_account = pw.Address(privateKey = self.apiKey)
-            // self.dex_address = pw.Address(privateKey = self.apiKey).address
-            // self.balances = {}
-            // self.asset_priority = {}
-            // data = requests.get(pw.MATCHER + '/matcher/settings')
-            // i = 0
-            // assets = json.loads(data.text)
-            // for a in assets['priceAssets']:
-            //     self.asset_priority[a] = i
-            //     i += 1
+            self.userAddress = wc.address(self.apiKey) // this.apiKey <-- SEED Phrase
+            self.publicKey = wc.publicKey(self.apiKey)
+            self.privateKey = wc.privateKey(self.apiKey)
         }
+    }
+
+    initBalance (params = {}) {
+        let balances = {};
+        balances['WAVES'] = {
+            free: 0,
+            used: 0,
+            total: 0
+        }
+        for (let market in this.dexid) {
+            balances[market] = {
+                free: 0,
+                used: 0,
+                total: 0
+            }
+        }
+        return balances
+    }
+
+    parseBalance (balances) {
+        for (let market in balances) {
+            balances[market]['info'] = {
+                free: balances['market']['free'],
+                used: balances['market']['used'],
+                total: balances['market']['total']
+            }
+        }
+        return balances
+    }
+
+    async fetchBalance (addr, params = {}) {
+        this.InitMatcher();
+        let balances = this.initBalance();
+
+        // FOR TEST
+        if (addr) {
+            //
+            for (let market in this.dexid) {
+                if (market === 'WAVES') {
+                    let bal = await axios({
+                        method:'get',
+                        url: this.nodeUrl + '/addresses/balance/3PPKDQ3G67gekeobR8MENopXytEf6M8WXhs'
+                    })
+                    bal = bal['data']
+                    balances['WAVES']['total'] = bal['balance']
+                } else {
+                    let marketid = this.dexid[market]
+
+                    let assetPrecision = this.decimals['WAVES']
+                    let marketPrecision = this.decimals[market]
+
+                    // Tradable Balance
+                    let tradeB = await axios({
+                        method:'get',
+                        url: this.matcherUrl + '/matcher/orderbook/WAVES/' + marketid + '/tradableBalance/3PPKDQ3G67gekeobR8MENopXytEf6M8WXhs'
+                    })
+                    tradeB = tradeB['data']
+
+                    balances[market]['free'] = tradeB[marketid] / 10 ** marketPrecision
+                    balances['WAVES']['free'] = tradeB['WAVES'] / 10 ** assetPrecision
+
+                    // Total Balance
+                    let totalB = await axios({
+                        method:'get',
+                        url: this.nodeUrl + '/assets/balance/3PPKDQ3G67gekeobR8MENopXytEf6M8WXhs/' + marketid
+                    })
+                    totalB = totalB['data']
+
+                    balances[market]['total'] = totalB['balance'] / 10 ** marketPrecision
+
+                    // Used Balance
+                    balances[market]['used'] = balances[market]['total'] - balances[market]['free']
+                    balances['WAVES']['used'] = balances['WAVES']['total'] - balances['WAVES']['free']
+                }
+            }
+            //
+        } else {
+            for (let market in this.dexid) {
+                if (market === 'WAVES') {
+                    let bal = await axios({
+                        method:'get',
+                        url: this.nodeUrl + '/addresses/balance/' + this.userAddress
+                    })
+                    bal = bal['data']
+                    balances['WAVES']['total'] = bal['balance']
+                } else {
+                    let marketid = this.dexid[market]
+
+                    let assetPrecision = this.decimals['WAVES']
+                    let marketPrecision = this.decimals[market]
+
+                    // Tradable Balance
+                    let tradeB = await axios({
+                        method:'get',
+                        url: this.matcherUrl + '/matcher/orderbook/WAVES/' + marketid + '/tradableBalance/' + this.userAddress
+                    })
+                    tradeB = tradeB['data']
+
+                    balances[market]['free'] = tradeB[marketid] / 10 ** marketPrecision
+                    balances['WAVES']['free'] = tradeB['WAVES'] / 10 ** assetPrecision
+
+                    // Total Balance
+                    let totalB = await axios({
+                        method:'get',
+                        url: this.nodeUrl + '/assets/balance/' + this.userAddress + '/' + marketid
+                    })
+                    totalB = totalB['data']
+
+                    balances[market]['total'] = totalB['balance'] / 10 ** marketPrecision
+
+                    // Used Balance
+                    balances[market]['used'] = balances[market]['total'] - balances[market]['free']
+                    balances['WAVES']['used'] = balances['WAVES']['total'] - balances['WAVES']['free']
+                }
+            }
+        }
+
+        balances = this.parseBalance(balances)
+        return balances
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
