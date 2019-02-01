@@ -5,7 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const axios = require ('axios');
 const wc = require('waves-crypto');
-const { BASE58_STRING} = wc
+const { BASE58_STRING, LONG } = wc
 const { order } = require('waves-transactions');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, OrderNotFound, InvalidOrder, AuthenticationError, InvalidNonce } = require ('./base/errors');
 
@@ -458,6 +458,67 @@ module.exports = class wavesdex extends Exchange {
         return ord
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let self = this
+
+        this.InitMatcher();
+        let assetname = symbol.split('/')[0]
+        let marketname = symbol.split('/')[1]
+
+        let assetid = self.dexid[assetname]
+        let marketid = self.dexid[marketname]
+
+        let assetPrecision = self.decimals[assetname]
+        let marketPrecision = self.decimals[marketname]
+
+        const timestampOrd = Date.now()
+
+        const paramsBytes = wc.concat(
+            BASE58_STRING(self.publicKey),
+            LONG(timestampOrd),
+        )
+        const signedBytes = wc.signBytes(paramsBytes, self.apiKey)
+
+        const paramsHeader = {
+            Accept: 'application/json',
+            Timestamp: timestampOrd,
+            Signature: signedBytes
+        }
+
+        let dexorders = await axios({
+            method:'get',
+            url: self.matcherUrl + '/matcher/orderbook/' + assetname +'/' + marketid + '/publicKey/' + self.publicKey,
+            params: {
+                activeOnly: true
+            },
+            headers: paramsHeader
+        })
+        dexorders = dexorders['data']
+
+        let orders = []
+        for (let i in dexorders) {
+            let ord = dexorders[i]
+            ord['status'] = 'open'
+            ord['symbol'] = symbol
+            order['side'] = order['type']
+            order['amount'] = parseFloat(order['amount']) / 10 ** assetPrecision
+            order['price'] = parseFloat(order['price']) / 10 ** (8 + marketPrecision - assetPrecision)
+            orders.push(order)
+        }
+
+        return orders
+    }
+
+    // async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    //     let orders = await this.fetchOrders (symbol, since, limit, params);
+    //     return this.filterBy (orders, 'status', 'open');
+    // }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
+    }
+
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
@@ -790,38 +851,6 @@ module.exports = class wavesdex extends Exchange {
             }
         }
         return this.toArray (this.orders);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if ('fetchOrdersRequiresSymbol' in this.options)
-            if (this.options['fetchOrdersRequiresSymbol'])
-                if (symbol === undefined)
-                    throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            let market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        let response = await this.privatePostActiveOrders (this.extend (request, params));
-        // wavesdex etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
-        let openOrders = [];
-        if ('return' in response)
-            openOrders = this.parseOrders (response['return'], market);
-        let allOrders = this.updateCachedOrders (openOrders, symbol);
-        let result = this.filterBySymbol (allOrders, symbol);
-        return this.filterBySinceLimit (result, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'open');
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
