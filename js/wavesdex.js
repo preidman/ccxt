@@ -506,7 +506,7 @@ module.exports = class wavesdex extends Exchange {
             ord['amount'] = parseFloat(dexorders[i]['amount']) / 10 ** assetPrecision
             ord['filled'] = parseFloat(dexorders[i]['filled']) / 10 ** assetPrecision
             ord['price'] = parseFloat(dexorders[i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
-            orders.push(order)
+            orders.push(ord)
         }
 
         return orders
