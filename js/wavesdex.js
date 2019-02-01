@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const axios = require ('axios');
 const wc = require('waves-crypto');
+const { order } = require('waves-transactions');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, OrderNotFound, InvalidOrder, AuthenticationError, InvalidNonce } = require ('./base/errors');
 
 module.exports = class wavesdex extends Exchange {
@@ -379,24 +380,44 @@ module.exports = class wavesdex extends Exchange {
         return orderbook
     }
 
-    // async fetchOrderBook (symbol, limit = undefined, params = {}) {
-    //     this.InitMatcher();
-    //     await this.loadMarkets ();
-    //     let market = this.market (symbol);
-    //     let request = {
-    //         'pair': market['id'],
-    //     };
-    //     if (limit !== undefined) {
-    //         request['limit'] = limit; // default = 150, max = 2000
-    //     }
-    //     let response = await this.publicGetDepthPair (this.extend (request, params));
-    //     let market_id_in_reponse = (market['id'] in response);
-    //     if (!market_id_in_reponse) {
-    //         throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
-    //     }
-    //     let orderbook = response[market['id']];
-    //     return this.parseOrderBook (orderbook);
-    // }
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.InitMatcher();
+        let assetname = symbol.split('/')[0]
+        let marketname = symbol.split('/')[1]
+
+        let assetid = this.dexid[assetname]
+        let marketid = this.dexid[marketname]
+
+        let assetPrecision = this.decimals[assetname]
+        let marketPrecision = this.decimals[marketname]
+
+        let floatPrice = Math.floor(price * 10 ** 8) / 10 ** 8
+        let intPrice = parseInt(floatPrice * 10 ** (8 + marketPrecision - assetPrecision))
+        let intQty = parseInt(amount * 10 ** assetPrecision)
+
+        // Sign Order
+        const orderParams = {
+            amount: intQty,
+            price: intPrice,
+            priceAsset: marketid,
+            matcherPublicKey: '7kPFrHDiGw1rCm7LPszuECwWYL3dMf6iMifLRDJQZMzy',
+            orderType: 'side'
+        }
+        const signedOrder = order(params, this.apiKey)
+
+        // Broadcast order
+        let ord = await axios({
+            method:'post',
+            headers: {'Content-Type': 'application/json'},
+            url: this.matcherUrl + '/matcher/orderbook',
+            data: {
+                body: signedOrder
+            }
+        })
+        ord = ord['data']
+
+        return ord
+    }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
@@ -595,56 +616,6 @@ module.exports = class wavesdex extends Exchange {
             }
         }
         return this.parseTrades (response[market['id']], market, since, limit);
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === 'market') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
-            'type': side,
-            'amount': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
-        };
-        price = parseFloat (price);
-        amount = parseFloat (amount);
-        let response = await this.privatePostTrade (this.extend (request, params));
-        let id = undefined;
-        let status = 'open';
-        let filled = 0.0;
-        let remaining = amount;
-        if ('return' in response) {
-            id = this.safeString (response['return'], this.getOrderIdKey ());
-            if (id === '0') {
-                id = this.safeString (response['return'], 'init_order_id');
-                status = 'closed';
-            }
-            filled = this.safeFloat (response['return'], 'received', 0.0);
-            remaining = this.safeFloat (response['return'], 'remains', amount);
-        }
-        let timestamp = this.milliseconds ();
-        let order = {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'fee': undefined,
-            // 'trades': this.parseTrades (order['trades'], market),
-        };
-        this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
     }
 
     getOrderIdKey () {
