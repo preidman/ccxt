@@ -407,14 +407,7 @@ module.exports = class wavesdex extends Exchange {
         const signedOrder = order(orderParams, this.apiKey)
 
         // Broadcast order
-        let ord = await axios({
-            method:'post',
-            headers: {'Content-Type': 'application/json'},
-            url: this.matcherUrl + '/matcher/orderbook',
-            data: {
-                body: signedOrder
-            }
-        })
+        let ord = await axios.post(this.matcherUrl + '/matcher/orderbook', signedOrder)
         ord = ord['data']
 
         return [orderParams, signedOrder, ord]
