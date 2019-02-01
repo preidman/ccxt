@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const axios = require ('axios');
 const wc = require('waves-crypto');
+const { BASE58_STRING} = wc
 const { order } = require('waves-transactions');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, OrderNotFound, InvalidOrder, AuthenticationError, InvalidNonce } = require ('./base/errors');
 
@@ -425,6 +426,38 @@ module.exports = class wavesdex extends Exchange {
         return res
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        let self = this
+
+        this.InitMatcher();
+        let assetname = symbol.split('/')[0]
+        let marketname = symbol.split('/')[1]
+
+        let assetid = self.dexid[assetname]
+        let marketid = self.dexid[marketname]
+
+        let assetPrecision = self.decimals[assetname]
+        let marketPrecision = self.decimals[marketname]
+
+        const paramsToDeleteBytes = wc.concat(
+            BASE58_STRING(self.publicKey),
+            BASE58_STRING(id),
+        )
+        const signedBytes = wc.signBytes(paramsToDeleteBytes, self.apiKey)
+
+        const paramsToDelete = {
+            sender: self.publicKey,
+            orderId: id,
+            signature: signedBytes
+        }
+
+        //Cancel
+        let ord = await axios.post(self.matcherUrl + '/matcher/orderbook/' + assetname +'/' + marketid + '/cancel', paramsToDelete)
+        ord = ord['data']
+
+        return ord
+    }
+
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
@@ -626,19 +659,6 @@ module.exports = class wavesdex extends Exchange {
 
     getOrderIdKey () {
         return 'order_id';
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let idKey = this.getOrderIdKey ();
-        request[idKey] = id;
-        let method = this.options['cancelOrderMethod'];
-        let response = await this[method] (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
-        return response;
     }
 
     parseOrderStatus (status) {
