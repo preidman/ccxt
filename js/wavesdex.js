@@ -253,90 +253,46 @@ module.exports = class wavesdex extends Exchange {
         return balances
     }
 
-    async fetchBalance (config, params = {}) {
+    async fetchBalance (params = {}) {
         this.InitMatcher();
         let balances = this.initBalance();
 
-        // FOR TEST
-        if (config === 'TEST') {
-            //
-            for (let market in this.dexid) {
-                if (market === 'WAVES') {
-                    let bal = await axios({
-                        method:'get',
-                        url: this.nodeUrl + '/addresses/balance/3PPKDQ3G67gekeobR8MENopXytEf6M8WXhs'
-                    })
-                    bal = bal['data']
-                    balances['WAVES']['total'] = bal['balance'] / 10 ** this.decimals['WAVES']
-                } else {
-                    let marketid = this.dexid[market]
+        for (let market in this.dexid) {
+            if (market === 'WAVES') {
+                let bal = await axios({
+                    method:'get',
+                    url: this.nodeUrl + '/addresses/balance/' + this.userAddress
+                })
+                bal = bal['data']
+                balances['WAVES']['total'] = bal['balance'] / 10 ** this.decimals['WAVES']
+            } else {
+                let marketid = this.dexid[market]
 
-                    let assetPrecision = this.decimals['WAVES']
-                    let marketPrecision = this.decimals[market]
+                let assetPrecision = this.decimals['WAVES']
+                let marketPrecision = this.decimals[market]
 
-                    // Tradable Balance
-                    let tradeB = await axios({
-                        method:'get',
-                        url: this.matcherUrl + '/matcher/orderbook/WAVES/' + marketid + '/tradableBalance/3PPKDQ3G67gekeobR8MENopXytEf6M8WXhs'
-                    })
-                    tradeB = tradeB['data']
+                // Tradable Balance
+                let tradeB = await axios({
+                    method:'get',
+                    url: this.matcherUrl + '/matcher/orderbook/WAVES/' + marketid + '/tradableBalance/' + this.userAddress
+                })
+                tradeB = tradeB['data']
 
-                    balances[market]['free'] = tradeB[marketid] / 10 ** marketPrecision
-                    balances['WAVES']['free'] = tradeB['WAVES'] / 10 ** assetPrecision
+                balances[market]['free'] = tradeB[marketid] / 10 ** marketPrecision
+                balances['WAVES']['free'] = tradeB['WAVES'] / 10 ** assetPrecision
 
-                    // Total Balance
-                    let totalB = await axios({
-                        method:'get',
-                        url: this.nodeUrl + '/assets/balance/3PPKDQ3G67gekeobR8MENopXytEf6M8WXhs/' + marketid
-                    })
-                    totalB = totalB['data']
+                // Total Balance
+                let totalB = await axios({
+                    method:'get',
+                    url: this.nodeUrl + '/assets/balance/' + this.userAddress + '/' + marketid
+                })
+                totalB = totalB['data']
 
-                    balances[market]['total'] = totalB['balance'] / 10 ** marketPrecision
+                balances[market]['total'] = totalB['balance'] / 10 ** marketPrecision
 
-                    // Used Balance
-                    balances[market]['used'] = balances[market]['total'] - balances[market]['free']
-                    balances['WAVES']['used'] = balances['WAVES']['total'] - balances['WAVES']['free']
-                }
-            }
-            //
-        } else {
-            for (let market in this.dexid) {
-                if (market === 'WAVES') {
-                    let bal = await axios({
-                        method:'get',
-                        url: this.nodeUrl + '/addresses/balance/' + this.userAddress
-                    })
-                    bal = bal['data']
-                    balances['WAVES']['total'] = bal['balance']
-                } else {
-                    let marketid = this.dexid[market]
-
-                    let assetPrecision = this.decimals['WAVES']
-                    let marketPrecision = this.decimals[market]
-
-                    // Tradable Balance
-                    let tradeB = await axios({
-                        method:'get',
-                        url: this.matcherUrl + '/matcher/orderbook/WAVES/' + marketid + '/tradableBalance/' + this.userAddress
-                    })
-                    tradeB = tradeB['data']
-
-                    balances[market]['free'] = tradeB[marketid] / 10 ** marketPrecision
-                    balances['WAVES']['free'] = tradeB['WAVES'] / 10 ** assetPrecision
-
-                    // Total Balance
-                    let totalB = await axios({
-                        method:'get',
-                        url: this.nodeUrl + '/assets/balance/' + this.userAddress + '/' + marketid
-                    })
-                    totalB = totalB['data']
-
-                    balances[market]['total'] = totalB['balance'] / 10 ** marketPrecision
-
-                    // Used Balance
-                    balances[market]['used'] = balances[market]['total'] - balances[market]['free']
-                    balances['WAVES']['used'] = balances['WAVES']['total'] - balances['WAVES']['free']
-                }
+                // Used Balance
+                balances[market]['used'] = balances[market]['total'] - balances[market]['free']
+                balances['WAVES']['used'] = balances['WAVES']['total'] - balances['WAVES']['free']
             }
         }
 
