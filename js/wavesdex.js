@@ -495,18 +495,21 @@ module.exports = class wavesdex extends Exchange {
         })
         dexorders = dexorders['data']
 
-        // let orders = []
-        // for (let i in dexorders) {
-        //     let ord = dexorders[i]
-        //     ord['status'] = 'open'
-        //     ord['symbol'] = symbol
-        //     order['side'] = order['type']
-        //     order['amount'] = parseFloat(order['amount']) / 10 ** assetPrecision
-        //     order['price'] = parseFloat(order['price']) / 10 ** (8 + marketPrecision - assetPrecision)
-        //     orders.push(order)
-        // }
+        let orders = []
+        for (let i in dexorders) {
+            let ord = {}
+            ord['status'] = 'open'
+            ord['symbol'] = symbol
+            order['side'] = dexorders[i]['type']
+            order['id'] = dexorders[i]['id']
+            order['timestamp'] = dexorders[i]['timestamp']
+            order['amount'] = parseFloat(dexorders[i]['amount']) / 10 ** assetPrecision
+            order['filled'] = parseFloat(dexorders[i]['filled']) / 10 ** assetPrecision
+            order['price'] = parseFloat(dexorders[i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
+            orders.push(order)
+        }
 
-        return dexorders
+        return orders
     }
 
     // async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
