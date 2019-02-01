@@ -399,24 +399,25 @@ module.exports = class wavesdex extends Exchange {
         const orderParams = {
             amount: intQty,
             price: intPrice,
+            amountAsset: assetname,
             priceAsset: marketid,
             matcherPublicKey: '7kPFrHDiGw1rCm7LPszuECwWYL3dMf6iMifLRDJQZMzy',
-            orderType: 'side'
+            orderType: side
         }
         const signedOrder = order(orderParams, this.apiKey)
 
         // Broadcast order
-        // let ord = await axios({
-        //     method:'post',
-        //     headers: {'Content-Type': 'application/json'},
-        //     url: this.matcherUrl + '/matcher/orderbook',
-        //     data: {
-        //         body: signedOrder
-        //     }
-        // })
-        // ord = ord['data']
+        let ord = await axios({
+            method:'post',
+            headers: {'Content-Type': 'application/json'},
+            url: this.matcherUrl + '/matcher/orderbook',
+            data: {
+                body: signedOrder
+            }
+        })
+        ord = ord['data']
 
-        return [orderParams, signedOrder]
+        return [orderParams, signedOrder, ord]
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
