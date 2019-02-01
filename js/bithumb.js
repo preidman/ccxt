@@ -1,5 +1,6 @@
 'use strict';
 
+/* eslint-disable */
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
@@ -163,6 +164,33 @@ module.exports = class bithumb extends Exchange {
         let orderbook = response['data'];
         let timestamp = parseInt (orderbook['timestamp']);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'quantity');
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let marketname = symbol.split('/')[0]
+
+        let request = {
+            'currency': marketname,
+        }
+
+        let response = await this.privatePostInfoOrders (this.extend (request, params))
+        let dexorders = response['data']
+
+        let orders = []
+        for (let i in dexorders) {
+            let ord = {}
+            ord['status'] = 'open'
+            ord['symbol'] = symbol
+            ord['side'] = dexorders[i]['type'] === 'ask' ? 'sell' : 'buy'
+            ord['id'] = dexorders[i]['order_id']
+            ord['timestamp'] = dexorders[i]['order_date']
+            ord['amount'] = parseFloat(dexorders[i]['units'])
+            ord['filled'] = parseFloat(dexorders[i]['units']) - parseFloat(dexorders[i]['units_remaining'])
+            ord['price'] = parseFloat(dexorders[i]['price'])
+            orders.push(ord)
+        }
+
+        return orders
     }
 
     parseTicker (ticker, market = undefined) {
