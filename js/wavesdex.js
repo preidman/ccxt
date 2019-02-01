@@ -416,7 +416,7 @@ module.exports = class wavesdex extends Exchange {
         })
         ord = ord['data']
 
-        return ord
+        return [orderParams, signedOrder, ord]
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
