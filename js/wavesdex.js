@@ -251,12 +251,12 @@ module.exports = class wavesdex extends Exchange {
         return balances
     }
 
-    async fetchBalance (addr, params = {}) {
+    async fetchBalance (config, params = {}) {
         this.InitMatcher();
         let balances = this.initBalance();
 
         // FOR TEST
-        if (addr) {
+        if (config === 'TEST') {
             //
             for (let market in this.dexid) {
                 if (market === 'WAVES') {
@@ -265,7 +265,7 @@ module.exports = class wavesdex extends Exchange {
                         url: this.nodeUrl + '/addresses/balance/3PPKDQ3G67gekeobR8MENopXytEf6M8WXhs'
                     })
                     bal = bal['data']
-                    balances['WAVES']['total'] = bal['balance']
+                    balances['WAVES']['total'] = bal['balance'] / 10 ** this.decimals['WAVES']
                 } else {
                     let marketid = this.dexid[market]
 
