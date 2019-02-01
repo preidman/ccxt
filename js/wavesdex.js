@@ -403,7 +403,7 @@ module.exports = class wavesdex extends Exchange {
             matcherPublicKey: '7kPFrHDiGw1rCm7LPszuECwWYL3dMf6iMifLRDJQZMzy',
             orderType: 'side'
         }
-        const signedOrder = order(params, this.apiKey)
+        const signedOrder = order(orderParams, this.apiKey)
 
         // Broadcast order
         let ord = await axios({
