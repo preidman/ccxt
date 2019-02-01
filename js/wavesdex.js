@@ -500,12 +500,12 @@ module.exports = class wavesdex extends Exchange {
             let ord = {}
             ord['status'] = 'open'
             ord['symbol'] = symbol
-            order['side'] = dexorders[i]['type']
-            order['id'] = dexorders[i]['id']
-            order['timestamp'] = dexorders[i]['timestamp']
-            order['amount'] = parseFloat(dexorders[i]['amount']) / 10 ** assetPrecision
-            order['filled'] = parseFloat(dexorders[i]['filled']) / 10 ** assetPrecision
-            order['price'] = parseFloat(dexorders[i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
+            ord['side'] = dexorders[i]['type']
+            ord['id'] = dexorders[i]['id']
+            ord['timestamp'] = dexorders[i]['timestamp']
+            ord['amount'] = parseFloat(dexorders[i]['amount']) / 10 ** assetPrecision
+            ord['filled'] = parseFloat(dexorders[i]['filled']) / 10 ** assetPrecision
+            ord['price'] = parseFloat(dexorders[i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
             orders.push(order)
         }
 
@@ -518,8 +518,59 @@ module.exports = class wavesdex extends Exchange {
     // }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        let self = this
+
+        this.InitMatcher();
+        let assetname = symbol.split('/')[0]
+        let marketname = symbol.split('/')[1]
+
+        let assetid = self.dexid[assetname]
+        let marketid = self.dexid[marketname]
+
+        let assetPrecision = self.decimals[assetname]
+        let marketPrecision = self.decimals[marketname]
+
+        const timestampOrd = Date.now()
+
+        const paramsBytes = wc.concat(
+            BASE58_STRING(self.publicKey),
+            LONG(timestampOrd),
+        )
+        const signedBytes = wc.signBytes(paramsBytes, self.apiKey)
+
+        const paramsHeader = {
+            Accept: 'application/json',
+            Timestamp: timestampOrd,
+            Signature: signedBytes
+        }
+
+        let dexorders = await axios({
+            method:'get',
+            url: self.matcherUrl + '/matcher/orderbook/' + assetname +'/' + marketid + '/publicKey/' + self.publicKey,
+            params: {
+                activeOnly: false
+            },
+            headers: paramsHeader
+        })
+        dexorders = dexorders['data']
+
+        let orders = []
+        for (let i in dexorders) {
+            if (dexorders[i]['status'] === 'Filled') {
+                let ord = {}
+                ord['status'] = 'open'
+                ord['symbol'] = symbol
+                ord['side'] = dexorders[i]['type']
+                ord['id'] = dexorders[i]['id']
+                ord['timestamp'] = dexorders[i]['timestamp']
+                ord['amount'] = parseFloat(dexorders[i]['amount']) / 10 ** assetPrecision
+                ord['filled'] = parseFloat(dexorders[i]['filled']) / 10 ** assetPrecision
+                ord['price'] = parseFloat(dexorders[i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
+                orders.push(order)
+            }
+        }
+
+        return orders
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
