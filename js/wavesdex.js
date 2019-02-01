@@ -409,7 +409,20 @@ module.exports = class wavesdex extends Exchange {
         let ord = await axios.post(this.matcherUrl + '/matcher/orderbook', signedOrder)
         ord = ord['data']
 
-        return ord
+        let res = {}
+        if (ord['status'] === 'OrderAccepted') {
+            res = ord['message']
+            res['side'] = res['orderType']
+            res['price'] = res['price'] / 10 ** (8 + marketPrecision - assetPrecision)
+            res['amount'] = res['amount'] / 10 ** (8 + marketPrecision - assetPrecision)
+            res['symbol'] = symbol
+            res['status'] = 'OK'
+        } else {
+            res['status'] = 'ERR'
+            res['message'] = ord
+        }
+
+        return res
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
