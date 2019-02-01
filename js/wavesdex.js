@@ -399,7 +399,6 @@ module.exports = class wavesdex extends Exchange {
         const orderParams = {
             amount: intQty,
             price: intPrice,
-            amountAsset: assetname,
             priceAsset: marketid,
             matcherPublicKey: '7kPFrHDiGw1rCm7LPszuECwWYL3dMf6iMifLRDJQZMzy',
             orderType: side
@@ -410,7 +409,7 @@ module.exports = class wavesdex extends Exchange {
         let ord = await axios.post(this.matcherUrl + '/matcher/orderbook', signedOrder)
         ord = ord['data']
 
-        return [orderParams, signedOrder, ord]
+        return ord
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
