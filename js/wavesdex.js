@@ -243,9 +243,9 @@ module.exports = class wavesdex extends Exchange {
     parseBalance (balances) {
         for (let market in balances) {
             balances[market]['info'] = {
-                free: balances['market']['free'],
-                used: balances['market']['used'],
-                total: balances['market']['total']
+                free: balances[market]['free'],
+                used: balances[market]['used'],
+                total: balances[market]['total']
             }
         }
         return balances
