@@ -225,7 +225,7 @@ module.exports = class bithumb extends Exchange {
                 ord['side'] = 'buy'
                 ord['id'] = crypto.randomBytes(20).toString('hex')
                 ord['timestamp'] = exordersBought[i]['transfer_date']
-                ord['amount'] = Math.abs(parseFloat(exordersBought[i]['units']))
+                ord['amount'] = Math.abs(parseFloat(exordersBought[i]['units'].replace(/\s+/g, '')))
                 ord['filled'] = ord['amount']
                 ord['price'] = parseFloat(exordersBought[i]['price'])
                 orders.push(ord)
@@ -236,7 +236,7 @@ module.exports = class bithumb extends Exchange {
                 ord['side'] = 'sell'
                 ord['id'] = crypto.randomBytes(20).toString('hex')
                 ord['timestamp'] = exordersSold[i]['transfer_date']
-                ord['amount'] = Math.abs(parseFloat(exordersSold[i]['units']))
+                ord['amount'] = Math.abs(parseFloat(exordersSold[i]['units'].replace(/\s+/g, '')))
                 ord['filled'] = ord['amount']
                 ord['price'] = parseFloat(exordersSold[i]['price'])
                 orders.push(ord)
