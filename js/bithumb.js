@@ -207,10 +207,10 @@ module.exports = class bithumb extends Exchange {
             'searchGb': 2,
         }
 
-        let response = await this.privatePostInfoUser_transactions (this.extend (requestBought, params))
+        let response = await this.privatePostInfoUserTransactions (this.extend (requestBought, params))
         let exordersBought = response['data']
 
-        response = await this.privatePostInfoUser_transactions (this.extend (requestSold, params))
+        response = await this.privatePostInfoUserTransactions (this.extend (requestSold, params))
         let exordersSold = response['data']
 
         let orders = []
