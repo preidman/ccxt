@@ -227,7 +227,7 @@ module.exports = class bithumb extends Exchange {
                 ord['timestamp'] = parseInt(exordersBought[i]['transfer_date']) / 1000
                 ord['amount'] = Math.abs(parseFloat(exordersBought[i]['units'].replace(/\s+/g, '')))
                 ord['filled'] = ord['amount']
-                ord['price'] = parseFloat(exordersBought[i]['price'])
+                ord['price'] = parseFloat(exordersBought[i][marketname.toLowerCase() + '1krw'])
                 orders.push(ord)
             }
             for (let i in exordersSold) {
@@ -238,7 +238,7 @@ module.exports = class bithumb extends Exchange {
                 ord['timestamp'] = parseInt(exordersSold[i]['transfer_date']) / 1000
                 ord['amount'] = Math.abs(parseFloat(exordersSold[i]['units'].replace(/\s+/g, '')))
                 ord['filled'] = ord['amount']
-                ord['price'] = parseFloat(exordersSold[i]['price'])
+                ord['price'] = parseFloat(exordersSold[i][marketname.toLowerCase() + '1krw'])
                 orders.push(ord)
             }
         } catch (e) {
