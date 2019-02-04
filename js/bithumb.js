@@ -4,6 +4,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const crypto = require("crypto");
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -187,6 +188,52 @@ module.exports = class bithumb extends Exchange {
             ord['amount'] = parseFloat(dexorders[i]['units'])
             ord['filled'] = parseFloat(dexorders[i]['units']) - parseFloat(dexorders[i]['units_remaining'])
             ord['price'] = parseFloat(dexorders[i]['price'])
+            orders.push(ord)
+        }
+
+        return orders
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let marketname = symbol.split('/')[0]
+
+        let requestBought = {
+            'currency': marketname,
+            'searchGb': 1,
+        }
+
+        let requestSold = {
+            'currency': marketname,
+            'searchGb': 2,
+        }
+
+        let response = await this.privatePostInfoUser_transactions (this.extend (requestBought, params))
+        let exordersBought = response['data']
+
+        response = await this.privatePostInfoUser_transactions (this.extend (requestSold, params))
+        let exordersSold = response['data']
+
+        let orders = []
+        for (let i in exordersBought) {
+            let ord = {}
+            ord['symbol'] = symbol
+            ord['side'] = 'buy'
+            ord['id'] = crypto.randomBytes(20).toString('hex')
+            ord['timestamp'] = exordersBought[i]['transfer_date']
+            ord['amount'] = Math.abs(parseFloat(exordersBought[i]['units']))
+            ord['filled'] = ord['amount']
+            ord['price'] = parseFloat(exordersBought[i]['price'])
+            orders.push(ord)
+        }
+        for (let i in exordersSold) {
+            let ord = {}
+            ord['symbol'] = symbol
+            ord['side'] = 'sell'
+            ord['id'] = crypto.randomBytes(20).toString('hex')
+            ord['timestamp'] = exordersBought[i]['transfer_date']
+            ord['amount'] = Math.abs(parseFloat(exordersBought[i]['units']))
+            ord['filled'] = ord['amount']
+            ord['price'] = parseFloat(exordersBought[i]['price'])
             orders.push(ord)
         }
 
