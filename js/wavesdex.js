@@ -510,23 +510,23 @@ module.exports = class wavesdex extends Exchange {
         })
         dexorders = dexorders['data']
 
-        let orders = []
-        for (let i in dexorders) {
-            if (dexorders[i]['status'] === 'Filled') {
-                let ord = {}
-                ord['status'] = 'open'
-                ord['symbol'] = symbol
-                ord['side'] = dexorders[i]['type']
-                ord['id'] = dexorders[i]['id']
-                ord['timestamp'] = dexorders[i]['timestamp']
-                ord['amount'] = parseFloat(dexorders[i]['amount']) / 10 ** assetPrecision
-                ord['filled'] = parseFloat(dexorders[i]['filled']) / 10 ** assetPrecision
-                ord['price'] = parseFloat(dexorders[i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
-                orders.push(order)
-            }
-        }
+        // let orders = []
+        // for (let i in dexorders) {
+        //     if (dexorders[i]['status'] === 'Filled') {
+        //         let ord = {}
+        //         ord['status'] = 'open'
+        //         ord['symbol'] = symbol
+        //         ord['side'] = dexorders[i]['type']
+        //         ord['id'] = dexorders[i]['id']
+        //         ord['timestamp'] = dexorders[i]['timestamp']
+        //         ord['amount'] = parseFloat(dexorders[i]['amount']) / 10 ** assetPrecision
+        //         ord['filled'] = parseFloat(dexorders[i]['filled']) / 10 ** assetPrecision
+        //         ord['price'] = parseFloat(dexorders[i]['price']) / 10 ** (8 + marketPrecision - assetPrecision)
+        //         orders.push(order)
+        //     }
+        // }
 
-        return orders
+        return dexorders
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
