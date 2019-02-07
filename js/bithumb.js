@@ -178,19 +178,19 @@ module.exports = class bithumb extends Exchange {
         try {
             let response = await this.privatePostInfoOrders (this.extend (request, params))
             let dexorders = response['data']
-            orders = dexorders
-            // for (let i in dexorders) {
-            //     let ord = {}
-            //     ord['status'] = 'open'
-            //     ord['symbol'] = symbol
-            //     ord['side'] = dexorders[i]['type'] === 'ask' ? 'sell' : 'buy'
-            //     ord['id'] = dexorders[i]['order_id']
-            //     ord['timestamp'] = parseInt(dexorders[i]['order_date']) / 1000
-            //     ord['amount'] = parseFloat(dexorders[i]['units'])
-            //     ord['filled'] = parseFloat(dexorders[i]['units']) - parseFloat(dexorders[i]['units_remaining'])
-            //     ord['price'] = parseFloat(dexorders[i]['price'])
-            //     orders.push(ord)
-            // }
+
+            for (let i in dexorders) {
+                let ord = {}
+                ord['status'] = 'open'
+                ord['symbol'] = symbol
+                ord['side'] = dexorders[i]['type'] === 'ask' ? 'sell' : 'buy'
+                ord['id'] = dexorders[i]['order_id']
+                ord['timestamp'] = parseInt(dexorders[i]['order_date']) / 1000
+                ord['amount'] = parseFloat(dexorders[i]['units'])
+                ord['filled'] = parseFloat(dexorders[i]['units']) - parseFloat(dexorders[i]['units_remaining'])
+                ord['price'] = parseFloat(dexorders[i]['price'])
+                orders.push(ord)
+            }
         } catch (e) {
 
         }
