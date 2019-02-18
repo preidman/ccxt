@@ -103,8 +103,8 @@ module.exports = class okex3 extends okex {
         if (limit !== undefined)
             params['size'] = limit;
         // return this.parseOrderBook (orderbook);
-        let request = this.sign ('https://www.okex.com/api/spot/v3/instruments/' + market + '/ticker', 'public', 'GET', params, undefined, undefined)
+        let request = this.sign ('/spot/v3/instruments/' + market + '/ticker', 'public', 'GET', params, undefined, undefined)
         let ob = this.fetch (request.url, request.method, request.headers, request.body)
-        return this.parseOrderBook (ob)
+        return [this.parseOrderBook (ob), ob]
     }
 };
