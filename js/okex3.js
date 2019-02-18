@@ -202,4 +202,26 @@ module.exports = class okex3 extends okex {
 
         return [orders, response]
     }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        params = {
+            'type': 'limit',
+            'size': amount.toString(),
+            'price': price.toString(),
+            'instrument_id': symbol.replace('/', '-').replace('_', '-'),
+            'side': side
+        }
+        return await this.request ('spot/v3/orders', 'private', 'POST', params, undefined, undefined)
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+
+        params = {
+            'instrument_id': symbol.replace('/', '-').replace('_', '-')
+        }
+
+        return await this.request ('spot/v3/cancel_orders/' + id.toString(), 'private', 'POST', params, undefined, undefined)
+    }
 };
