@@ -123,4 +123,83 @@ module.exports = class okex3 extends okex {
         }
         return this.parseBalance (result);
     }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol !== undefined)
+            params['instrument_id'] = symbol.replace('/', '-').replace('_', '-');
+        if (limit !== undefined)
+            params['limit'] = limit.toString();
+
+        let response = await this.request ('spot/v3/orders_pending', 'private', 'GET', params, undefined, undefined)
+        let orders = []
+        for (let i in response) {
+            let o = response[i]
+            let order = {
+                'id': o['order_id'],
+                'datetime': o['created_at'],
+                'timestamp': o['timestamp'],
+                'lastTradeTimestamp': o['timestamp'],
+                'status': 'open',
+                'symbol': symbol,
+                'type': o['type'],
+                'side': o['side'],
+                'price': o['price'],
+                'amount': o['size'],
+                'filled': o['filled_size'],
+                'remaining': parseFloat(o['size']) - parseFloat(o['filled_size']),
+                'cost': 0,
+                'trades': [],
+                'fee': {
+                    'currency': 'BTC',
+                    'cost': 0,
+                    'rate': 0,
+                },
+                'info': o,
+            }
+            orders.push(order)
+        }
+
+        return [orders, response]
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol !== undefined)
+            params['instrument_id'] = symbol.replace('/', '-').replace('_', '-');
+        if (limit !== undefined)
+            params['limit'] = limit.toString();
+        params['status'] = 'all'
+
+        let response = await this.request ('spot/v3/orders', 'private', 'GET', params, undefined, undefined)
+        let orders = []
+        for (let i in response) {
+            let o = response[i]
+            if (o['status'] !== 'open') {
+                let order = {
+                    'id': o['order_id'],
+                    'datetime': o['created_at'],
+                    'timestamp': o['timestamp'],
+                    'lastTradeTimestamp': o['timestamp'],
+                    'status': o['status'],
+                    'symbol': symbol,
+                    'type': o['type'],
+                    'side': o['side'],
+                    'price': o['price'],
+                    'amount': o['size'],
+                    'filled': o['filled_size'],
+                    'remaining': parseFloat(o['size']) - parseFloat(o['filled_size']),
+                    'cost': 0,
+                    'trades': [],
+                    'fee': {
+                        'currency': 'BTC',
+                        'cost': 0,
+                        'rate': 0,
+                    },
+                    'info': o,
+                }
+                orders.push(order)
+            }
+        }
+
+        return [orders, response]
+    }
 };
