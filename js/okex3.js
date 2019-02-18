@@ -9,7 +9,7 @@ const { ExchangeError, ArgumentsRequired, DDoSProtection, InsufficientFunds, Inv
 
 // ---------------------------------------------------------------------------
 
-module.exports = class okex3 extends e {
+module.exports = class okex3 extends okex {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okex3',
