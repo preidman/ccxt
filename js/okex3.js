@@ -107,4 +107,19 @@ module.exports = class okex3 extends okex {
         // let ob = this.fetch (request.url, request.method, request.headers, request.body)
         return this.parseOrderBook (ob)
     }
+
+    async fetchBalance (params = {}) {
+        let response = await this.request ('spot/v3/accounts/', 'private', 'GET', params, undefined, undefined)
+        // let balances = response['info']['funds'];
+        let result = { 'info': response };
+
+        Object.keys (response).forEach (function (elem) {
+            let account = this.account ()
+            account['free'] = response[elem]['available']
+            account['used'] = response[elem]['holds']
+            account['total'] = response[elem]['balance']
+            result[elem] = account;
+        })
+        return this.parseBalance (result);
+    }
 };
