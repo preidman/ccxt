@@ -100,12 +100,11 @@ module.exports = class okex3 extends okex {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = symbol.replace('/', '-').replace('_', '-');
-        let method = 'publicGet';
-        let request = {};
         if (limit !== undefined)
-            request['size'] = limit;
-        method += 'SpotV3Instruments' + market + 'Book';
-        let orderbook = await this[method] (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+            params['size'] = limit;
+        // return this.parseOrderBook (orderbook);
+        let request = this.sign ('https://www.okex.com/api/spot/v3/instruments/' + market + '/ticker', 'public', 'GET', params, undefined, undefined)
+        let ob = this.fetch (request.url, request.method, request.headers, request.body)
+        return this.parseOrderBook (ob)
     }
 };
