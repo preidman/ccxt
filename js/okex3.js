@@ -114,13 +114,13 @@ module.exports = class okex3 extends okex {
         // let balances = response['info']['funds'];
         let result = { 'info': response };
 
-        Object.keys (response).forEach (function (elem) {
+        for (let i in response) {
             let account = self.account ()
-            account['free'] = response[elem]['available']
-            account['used'] = response[elem]['holds']
-            account['total'] = response[elem]['balance']
-            result[elem] = account;
-        })
+            account['free'] = response[i]['available']
+            account['used'] = response[i]['holds']
+            account['total'] = response[i]['balance']
+            result[response[i]['currency']] = account;
+        }
         return this.parseBalance (result);
     }
 };
