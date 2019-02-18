@@ -159,7 +159,7 @@ module.exports = class okex3 extends okex {
             orders.push(order)
         }
 
-        return [orders, response]
+        return orders
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -173,7 +173,7 @@ module.exports = class okex3 extends okex {
         let orders = []
         for (let i in response) {
             let o = response[i]
-            if (o['status'] !== 'open') {
+            if (o['status'] !== 'open' && o['status'] !== 'cancelled') {
                 let order = {
                     'id': o['order_id'],
                     'datetime': o['created_at'],
@@ -200,7 +200,7 @@ module.exports = class okex3 extends okex {
             }
         }
 
-        return [orders, response]
+        return orders
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
