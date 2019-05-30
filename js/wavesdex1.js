@@ -313,6 +313,10 @@ module.exports = class wavesdex1 extends Exchange {
         let assetPrecision = this.decimals[assetname]
         let marketPrecision = this.decimals[marketname]
 
+        if (assetname !== 'WAVES') {
+            assetname = assetid
+        }
+
         // let dexBook = await axios.get(this.matcherUrl + '/matcher/orderbook/' + assetname + '/' + marketid)
         let dexBook = await axios({
             method:'get',
@@ -350,6 +354,10 @@ module.exports = class wavesdex1 extends Exchange {
         let assetPrecision = this.decimals[assetname]
         let marketPrecision = this.decimals[marketname]
 
+        if (assetname !== 'WAVES') {
+            assetname = assetid
+        }
+
         let floatPrice = Math.floor(price * 10 ** 8) / 10 ** 8
         let intPrice = parseInt(floatPrice * 10 ** (8 + marketPrecision - assetPrecision))
         let intQty = parseInt(amount * 10 ** assetPrecision)
@@ -358,6 +366,7 @@ module.exports = class wavesdex1 extends Exchange {
         const orderParams = {
             amount: intQty,
             price: intPrice,
+            amountAsset: assetname,
             priceAsset: marketid,
             matcherPublicKey: '7kPFrHDiGw1rCm7LPszuECwWYL3dMf6iMifLRDJQZMzy',
             orderType: side
@@ -397,6 +406,10 @@ module.exports = class wavesdex1 extends Exchange {
         let assetPrecision = self.decimals[assetname]
         let marketPrecision = self.decimals[marketname]
 
+        if (assetname !== 'WAVES') {
+            assetname = assetid
+        }
+
         const paramsToDeleteBytes = wc.concat(
             BASE58_STRING(self.publicKey),
             BASE58_STRING(id),
@@ -428,6 +441,10 @@ module.exports = class wavesdex1 extends Exchange {
 
         let assetPrecision = self.decimals[assetname]
         let marketPrecision = self.decimals[marketname]
+
+        if (assetname !== 'WAVES') {
+            assetname = assetid
+        }
 
         const timestampOrd = Date.now()
 
@@ -487,6 +504,10 @@ module.exports = class wavesdex1 extends Exchange {
 
         let assetPrecision = self.decimals[assetname]
         let marketPrecision = self.decimals[marketname]
+
+        if (assetname !== 'WAVES') {
+            assetname = assetid
+        }
 
         const timestampOrd = Date.now()
 
