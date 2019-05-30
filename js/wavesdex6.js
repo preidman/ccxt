@@ -354,6 +354,8 @@ module.exports = class wavesdex6 extends Exchange {
         let intPrice = parseInt(floatPrice * 10 ** (8 + marketPrecision - assetPrecision))
         let intQty = parseInt(amount * 10 ** assetPrecision)
 
+        if (marketid === 'WAVES') marketid = ""
+
         // Sign Order
         const orderParams = {
             amount: intQty,
