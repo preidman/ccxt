@@ -204,7 +204,7 @@ module.exports = class wavesdex18 extends Exchange {
 
         if (!self.initDex) {
             self.dexid = {
-                "WAVES": "",
+                "WAVES": "WAVES",
                 "BTC": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
                 "ETH": "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
                 "USD": "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
@@ -313,14 +313,10 @@ module.exports = class wavesdex18 extends Exchange {
         let assetPrecision = this.decimals[assetname]
         let marketPrecision = this.decimals[marketname]
 
-        if (assetname !== 'WAVES') {
-            assetname = assetid
-        }
-
         // let dexBook = await axios.get(this.matcherUrl + '/matcher/orderbook/' + assetname + '/' + marketid)
         let dexBook = await axios({
             method:'get',
-            url: this.matcherUrl + '/matcher/orderbook/' + assetname + '/' + marketid
+            url: this.matcherUrl + '/matcher/orderbook/' + assetid + '/' + marketid
         })
         dexBook = dexBook['data']
         let bids = []
@@ -354,10 +350,6 @@ module.exports = class wavesdex18 extends Exchange {
         let assetPrecision = this.decimals[assetname]
         let marketPrecision = this.decimals[marketname]
 
-        if (assetname !== 'WAVES') {
-            assetname = assetid
-        }
-
         let floatPrice = Math.floor(price * 10 ** 8) / 10 ** 8
         let intPrice = parseInt(floatPrice * 10 ** (8 + marketPrecision - assetPrecision))
         let intQty = parseInt(amount * 10 ** assetPrecision)
@@ -366,7 +358,7 @@ module.exports = class wavesdex18 extends Exchange {
         const orderParams = {
             amount: intQty,
             price: intPrice,
-            amountAsset: assetname,
+            amountAsset: assetid,
             priceAsset: marketid,
             matcherPublicKey: '7kPFrHDiGw1rCm7LPszuECwWYL3dMf6iMifLRDJQZMzy',
             orderType: side
@@ -406,10 +398,6 @@ module.exports = class wavesdex18 extends Exchange {
         let assetPrecision = self.decimals[assetname]
         let marketPrecision = self.decimals[marketname]
 
-        if (assetname !== 'WAVES') {
-            assetname = assetid
-        }
-
         const paramsToDeleteBytes = wc.concat(
             BASE58_STRING(self.publicKey),
             BASE58_STRING(id),
@@ -423,7 +411,7 @@ module.exports = class wavesdex18 extends Exchange {
         }
 
         //Cancel
-        let ord = await axios.post(self.matcherUrl + '/matcher/orderbook/' + assetname +'/' + marketid + '/cancel', paramsToDelete)
+        let ord = await axios.post(self.matcherUrl + '/matcher/orderbook/' + assetid +'/' + marketid + '/cancel', paramsToDelete)
         ord = ord['data']
 
         return ord
@@ -442,10 +430,6 @@ module.exports = class wavesdex18 extends Exchange {
         let assetPrecision = self.decimals[assetname]
         let marketPrecision = self.decimals[marketname]
 
-        if (assetname !== 'WAVES') {
-            assetname = assetid
-        }
-
         const timestampOrd = Date.now()
 
         const paramsBytes = wc.concat(
@@ -462,7 +446,7 @@ module.exports = class wavesdex18 extends Exchange {
 
         let dexorders = await axios({
             method:'get',
-            url: self.matcherUrl + '/matcher/orderbook/' + assetname +'/' + marketid + '/publicKey/' + self.publicKey,
+            url: self.matcherUrl + '/matcher/orderbook/' + assetid +'/' + marketid + '/publicKey/' + self.publicKey,
             params: {
                 activeOnly: true
             },
@@ -505,10 +489,6 @@ module.exports = class wavesdex18 extends Exchange {
         let assetPrecision = self.decimals[assetname]
         let marketPrecision = self.decimals[marketname]
 
-        if (assetname !== 'WAVES') {
-            assetname = assetid
-        }
-
         const timestampOrd = Date.now()
 
         const paramsBytes = wc.concat(
@@ -525,7 +505,7 @@ module.exports = class wavesdex18 extends Exchange {
 
         let dexorders = await axios({
             method:'get',
-            url: self.matcherUrl + '/matcher/orderbook/' + assetname +'/' + marketid + '/publicKey/' + self.publicKey,
+            url: self.matcherUrl + '/matcher/orderbook/' + assetid +'/' + marketid + '/publicKey/' + self.publicKey,
             params: {
                 activeOnly: false
             },
