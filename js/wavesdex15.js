@@ -13,8 +13,8 @@ module.exports = class wavesdex15 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'initDex': false,
-            'id': 'wavesdex',
-            'name': 'wavesdex',
+            'id': 'wavesdex15',
+            'name': 'wavesdex15',
             'countries': [ 'JP' ],
             'rateLimit': 500,
             'version': '3',
