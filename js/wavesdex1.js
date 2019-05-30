@@ -208,12 +208,14 @@ module.exports = class wavesdex1 extends Exchange {
                 "BTC": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
                 "ETH": "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
                 "USD": "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
+                "VST": "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8",
             }
             self.decimals = {
                 "WAVES": 8,
                 "BTC": 8,
                 "ETH": 8,
                 "USD": 2,
+                "VST": 8,
             }
             self.initDex = true
             self.matcherUrl = 'https://matcher.wavesnodes.com'
