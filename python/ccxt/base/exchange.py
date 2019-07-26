@@ -129,6 +129,7 @@ class Exchange(object):
     hostname = None  # in case of inaccessibility of the "main" domain
     apiKey = ''
     secret = ''
+    matcherUrl = 'https://matcher.wavesnodes.com'
     password = ''
     uid = ''
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet

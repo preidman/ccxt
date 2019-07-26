@@ -218,7 +218,7 @@ module.exports = class wavesdex7 extends Exchange {
                 "VST": 8,
             }
             self.initDex = true
-            self.matcherUrl = 'https://matcher.wavesnodes.com'
+            // self.matcherUrl = 'https://matcher.wavesnodes.com'
             self.nodeUrl = 'https://nodes.wavesplatform.com'
 
             self.userAddress = wc.address(self.apiKey) // this.apiKey <-- SEED Phrase
