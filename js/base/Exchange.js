@@ -308,6 +308,7 @@ module.exports = class Exchange {
 
         this.apiKey        = undefined
         this.secret        = undefined
+        this.matcherUrl    = 'https://matcher.wavesnodes.com'
         this.uid           = undefined
         this.login         = undefined
         this.password      = undefined
