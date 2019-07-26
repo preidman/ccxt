@@ -202,6 +202,25 @@ const exchanges = {
     'wavesdex21':                      require ('./js/wavesdex21.js'),
     'wavesdex22':                      require ('./js/wavesdex22.js'),
     'wavesdex23':                      require ('./js/wavesdex23.js'),
+
+    'wavesdex24':                      require ('./js/wavesdex24.js'),
+    'wavesdex25':                      require ('./js/wavesdex25.js'),
+    'wavesdex26':                      require ('./js/wavesdex26.js'),
+    'wavesdex27':                      require ('./js/wavesdex27.js'),
+    'wavesdex28':                      require ('./js/wavesdex28.js'),
+    'wavesdex29':                      require ('./js/wavesdex29.js'),
+    'wavesdex30':                      require ('./js/wavesdex30.js'),
+    'wavesdex31':                      require ('./js/wavesdex31.js'),
+    'wavesdex32':                      require ('./js/wavesdex32.js'),
+    'wavesdex33':                      require ('./js/wavesdex33.js'),
+    'wavesdex34':                      require ('./js/wavesdex34.js'),
+    'wavesdex35':                      require ('./js/wavesdex35.js'),
+    'wavesdex36':                      require ('./js/wavesdex36.js'),
+    'wavesdex37':                      require ('./js/wavesdex37.js'),
+    'wavesdex38':                      require ('./js/wavesdex38.js'),
+    'wavesdex39':                      require ('./js/wavesdex39.js'),
+    'wavesdex40':                      require ('./js/wavesdex40.js'),
+    'wavesdex41':                      require ('./js/wavesdex41.js')
 }
 
 //-----------------------------------------------------------------------------
